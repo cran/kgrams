@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Valerio Gherardi" />
+
+
+<title>Classical k-gram Language Models in R</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Classical <span class="math inline">\(k\)</span>-gram Language Models in R</h1>
+<h4 class="author">Valerio Gherardi</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(kgrams)</span></code></pre></div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p><code>kgrams</code> provides R users with a set of tools for training, tuning and exploring <span class="math inline">\(k\)</span>-gram language models<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. It gives support for a number of common Natural Language Processing (NLP) tasks: from the basic ones, such as extracting (<em>tokenizing</em>) <span class="math inline">\(k\)</span>-grams from a text and predicting sentence or continuation probabilities, to more advanced ones such as computing language model perplexities<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> and sampling sentences according the language model’s probability distribution. Furthermore, it supports many classical <span class="math inline">\(k\)</span>-gram smoothing methods, including the well-known modified Kneser-Ney algorithm, first described in <span class="citation">(Chen and Goodman 1999)</span>, and widely considered the best performing smoothing technique for <span class="math inline">\(k\)</span>-gram models.</p>
+<p><span class="math inline">\(k\)</span>-gram language models are notoriously demanding from the space point of view, and many of the toolkits available for <span class="math inline">\(k\)</span>-gram based NLP employ various techniques and data structures to achieve the data compression required by the large scales of industry (and, sometimes, academic) applications (see <span class="citation">(Pibiri and Venturini 2019)</span> for a recent review). On the other hand, at such large scales, <em>neural</em> language models are often the most economic and best performing choice, and this is likely to become more and more so in the future. In developing <code>kgrams</code>, I made no special attempt at data compression, and <span class="math inline">\(k\)</span>-grams and count estimates are stored in plain C++ STL hash-tables, which can grow rapidly large as the size of corpora and dictionaries increases.</p>
+<p>On the other hand, most focus is put on providing a <em>fast</em>, time efficient implementation, with intuitive interfaces for text processing and for model evaluation, and a reasonably large choice of pre-implemented smoothing algorithms, making <code>kgrams</code> suitable for small- and medium-scale language model experiments, for rapidly building baseline models, and for pedagogical purposes.</p>
+<p>In the following Sections, I illustrate the prototypical workflow for <a href="#kgram_model">building a <span class="math inline">\(k\)</span>-gram language model</a> with <code>kgrams</code>, show how to compute <a href="#probability">probabilities</a> and <a href="#perplexity">perplexities</a>, and (for the sake of fun!) <a href="#sampling">generate random text</a> at different temperatures.</p>
+</div>
+<div id="kgram_model" class="section level2">
+<h2>Building a <span class="math inline">\(k\)</span>-gram language model</h2>
+<p>This section illustrates the typical workflow for building a <span class="math inline">\(k\)</span>-gram language model with <code>kgrams</code>. In summary, this involves the following main steps:</p>
+<ol style="list-style-type: decimal">
+<li>Load the training corpus, i.e. the text from which <span class="math inline">\(k\)</span>-gram frequencies are estimated.</li>
+<li>Preprocess the corpus and tokenize sentences.</li>
+<li>Store <span class="math inline">\(k\)</span>-gram frequency counts from the preprocessed training corpus.</li>
+<li>Build the final language model, by initializing its parameters and computing auxiliary counts possibly required by the smoothing technique employed.</li>
+</ol>
+<p>We illustrate all these steps in the following.</p>
+<div id="step-1-loading-the-training-corpus" class="section level3">
+<h3>Step 1: Loading the training corpus</h3>
+<p><code>kgrams</code> offers two options for reading the text corpora used in its computations, which are basically in-memory and out-of-memory solutions:</p>
+<ul>
+<li><em>in-memory</em>. The corpus is simply loaded in the R session as a <code>character</code> vector.</li>
+<li><em>out-of-memory</em>. The text is read in batches of fixed size from a <code>connection</code>. This solution includes, for instance, reading text from a file, from an URL, or from the standard input.</li>
+</ul>
+<p>The out-of-memory solution can be useful for training over large corpora without the need of storing the entire text into the RAM.</p>
+<p>In this vignette, for illustration, we will train a language model on an online text source. We will use William Shakespeare’s “Much Ado About Nothing” (text of the entire play) as training corpus, which is freely available on <a href="http://shakespeare.mit.edu">shakespeare.mit.edu</a>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Create an URL connection to Shakespeare&#39;s &quot;Much Ado About Nothing&quot; </span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>txt_con &lt;-<span class="st"> </span><span class="kw">url</span>(<span class="st">&quot;http://shakespeare.mit.edu/much_ado/full.html&quot;</span>)</span></code></pre></div>
+</div>
+<div id="step-2-preprocessing-and-tokenizing-sentences" class="section level3">
+<h3>Step 2: preprocessing and tokenizing sentences</h3>
+<p>One can (and usually should) apply some transformations to the raw training corpus before feeding it as input to the <span class="math inline">\(k\)</span>-gram counting algorithm. In particular, the algorithm considers as a <em>sentence</em> each entry of its pre-processed input, and pads each sentence with Begin-Of-Sentence (BOS) and End-Of-Sentence (EOS) tokens. It considers as a <em>word</em> any substring of a sentence delimited by (one or more) space characters.</p>
+<p>For the moment, we only need to define the functions used for preprocessing and sentence tokenization. We will use the following functions, which leverage on the basic utilities <code>kgrams::preprocess()</code> and <code>kgrams::tknz_sent()</code>, and perform some additional steps, since we will be reading raw HTML lines from the URL connection created above.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>.preprocess &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>        <span class="co"># Remove speaker name and locations (boldfaced in original html)</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>        x &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;&lt;b&gt;[A-z]+&lt;/b&gt;&quot;</span>, <span class="st">&quot;&quot;</span>, x)</span>
+<span id="cb3-4"><a href="#cb3-4"></a>        <span class="co"># Remove other html tags</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a>        x &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;&lt;[^&gt;]+&gt;||&lt;[^&gt;]+$||^[^&gt;]+&gt;$&quot;</span>, <span class="st">&quot;&quot;</span>, x)</span>
+<span id="cb3-6"><a href="#cb3-6"></a>        <span class="co"># Apply standard preprocessing including lower-case</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>        x &lt;-<span class="st"> </span>kgrams<span class="op">::</span><span class="kw">preprocess</span>(x)</span>
+<span id="cb3-8"><a href="#cb3-8"></a>        <span class="co"># Collapse to a single string to avoid splitting into more sentences at the end of lines</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a>        x &lt;-<span class="st"> </span><span class="kw">paste</span>(x, <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>)</span>
+<span id="cb3-10"><a href="#cb3-10"></a>        <span class="kw">return</span>(x)</span>
+<span id="cb3-11"><a href="#cb3-11"></a>}</span>
+<span id="cb3-12"><a href="#cb3-12"></a></span>
+<span id="cb3-13"><a href="#cb3-13"></a>.tknz_sent &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb3-14"><a href="#cb3-14"></a>        <span class="co"># Tokenize sentences</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a>        x &lt;-<span class="st"> </span>kgrams<span class="op">::</span><span class="kw">tknz_sent</span>(x, <span class="dt">keep_first =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb3-16"><a href="#cb3-16"></a>        <span class="co"># Remove empty sentences</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a>        x &lt;-<span class="st"> </span>x[x <span class="op">!=</span><span class="st"> &quot;&quot;</span>]</span>
+<span id="cb3-18"><a href="#cb3-18"></a>        <span class="kw">return</span>(x)</span>
+<span id="cb3-19"><a href="#cb3-19"></a>}</span></code></pre></div>
+</div>
+<div id="step-3-get-k-gram-frequency-counts" class="section level3">
+<h3>Step 3: get <span class="math inline">\(k\)</span>-gram frequency counts</h3>
+<p>We can now obtain <span class="math inline">\(k\)</span>-gram frequency counts from Shakespeare with a single command, using the function <code>kgram_freqs()</code>. The following stores <span class="math inline">\(k\)</span>-gram counts for <span class="math inline">\(k\)</span>-grams of order less than or equal to <span class="math inline">\(N = 5\)</span>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>freqs &lt;-<span class="st"> </span><span class="kw">kgram_freqs</span>(txt_con, <span class="co"># Read Shakespeare&#39;s text from connection</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>                     <span class="dt">N =</span> <span class="dv">5</span>, <span class="co"># Store k-gram counts for k &lt;= 5</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>                     <span class="dt">.preprocess =</span> .preprocess,  <span class="co"># preprocess text</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>                     <span class="dt">.tknz_sent =</span> .tknz_sent, <span class="co"># tokenize sentences</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>                     <span class="dt">verbose =</span> <span class="ot">FALSE</span>, <span class="co"># If TRUE, prints current progress info </span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>                     <span class="dt">max_lines =</span> <span class="ot">Inf</span>, <span class="co"># Read until the end-of-file</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>                     <span class="dt">batch_size =</span> <span class="dv">100</span> <span class="co"># Read text in batches of 100 lines</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>                     )</span>
+<span id="cb4-9"><a href="#cb4-9"></a>freqs</span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="co">#&gt; A k-gram frequency table.</span></span></code></pre></div>
+<p>The object <code>freqs</code> is an object of class <code>kgram_freqs</code>, i.e. a <span class="math inline">\(k\)</span>-gram frequency table. We can obtain a first informative summary of what this object contains by calling <code>summary()</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">summary</span>(freqs)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co">#&gt; A k-gram frequency table.</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co">#&gt; </span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co">#&gt; Parameters:</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="co">#&gt; * N: 5</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co">#&gt; * V: 3046</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt; </span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="co">#&gt; Number of words in training corpus:</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a><span class="co">#&gt; * W: 26174</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="co">#&gt; </span></span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="co">#&gt; Number of distinct k-grams with positive counts:</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a><span class="co">#&gt; * 1-grams:3048</span></span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="co">#&gt; * 2-grams:14389</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a><span class="co">#&gt; * 3-grams:21208</span></span>
+<span id="cb5-15"><a href="#cb5-15"></a><span class="co">#&gt; * 4-grams:22706</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a><span class="co">#&gt; * 5-grams:22975</span></span></code></pre></div>
+<p>The parameter <code>V</code> is the size of the dictionary, which was created behind the scenes by <code>kgram_freqs()</code>, using all words encountered in the text. In alternative, we could have used a pre-specified dictionary through the argument <code>dict</code>, and specify whether new words (not present in the original dictionary) should be added to it, or be replaced by an Unknown-Word (UNK) token, by the argument <code>open_dict</code>; see <code>?kgram_freqs</code> for further details. The number of distinct unigrams is greater than the size of the dictionary, because the former also includes the special BOS and EOS tokens.</p>
+<p>Notice that the functions <code>.preprocess()</code> and <code>.tknz_sent()</code> we defined above are passed as arguments of <code>kgram_freqs()</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. These are also saved in the final <code>kgram_freqs</code> object, and are by default applied also to inputs at prediction time.</p>
+<p>The following shows how to query <span class="math inline">\(k\)</span>-gram counts from the frequency table created above:<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Query some simple unigrams and bigrams</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="kw">query</span>(freqs, <span class="kw">c</span>(<span class="st">&quot;leonato&quot;</span>, <span class="st">&quot;enter leonato&quot;</span>, <span class="st">&quot;thy&quot;</span>, <span class="st">&quot;smartphones&quot;</span>))</span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="co">#&gt; [1] 38  6 52  0</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="co"># Query k-grams at the beginning or end of a sentence</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="kw">query</span>(freqs, <span class="kw">c</span>(<span class="kw">BOS</span>() <span class="op">%+%</span><span class="st"> </span><span class="kw">BOS</span>() <span class="op">%+%</span><span class="st"> &quot;i&quot;</span>, <span class="st">&quot;love&quot;</span> <span class="op">%+%</span><span class="st"> </span><span class="kw">EOS</span>()))</span>
+<span id="cb6-6"><a href="#cb6-6"></a><span class="co">#&gt; [1] 208   0</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="co"># Total number of words processed</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="kw">query</span>(freqs, <span class="st">&quot;&quot;</span>) </span>
+<span id="cb6-9"><a href="#cb6-9"></a><span class="co">#&gt; [1] 26174</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a><span class="co"># Total number of sentences processed</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a><span class="kw">query</span>(freqs, <span class="kw">EOS</span>()) </span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="co">#&gt; [1] 2270</span></span></code></pre></div>
+<p>The most important use of <code>kgram_freqs</code> objects is to create language models, as we illustrate in the next step.</p>
+</div>
+<div id="step-4.-build-the-final-language-model" class="section level3">
+<h3>Step 4. Build the final language model</h3>
+<p><code>kgrams</code> provides support for creating language models using several classical smoothing techniques. The list of smoothers currently supported by <code>kgrams</code> can be retrieved through:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">smoothers</span>()</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt; [1] &quot;ml&quot;    &quot;add_k&quot; &quot;abs&quot;   &quot;kn&quot;    &quot;mkn&quot;   &quot;sbo&quot;   &quot;wb&quot;</span></span></code></pre></div>
+<p>The documentation page <code>?smoothers</code> provides a list of original references for the various smoothers. We will use <a href="https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing">Interpolated Kneser-Ney</a> smoothing <span class="citation">(Kneser and Ney 1995; see also Chen and Goodman 1999)</span>, which goes under the code <code>&quot;kn&quot;</code>. We can get some usage help for this method through the command:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">info</span>(<span class="st">&quot;kn&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="co">#&gt; Interpolated Kneser-Ney</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt;  * code: &#39;kn&#39;</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt;  * parameters: D</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt;  * constraints: 0 &lt;= D &lt;= 1</span></span></code></pre></div>
+<p>As shown above, Kneser-Ney has one parameter <span class="math inline">\(D\)</span>, which is the discount applied to bare <span class="math inline">\(k\)</span>-gram frequency counts or continuation counts. We will initialize the model with <span class="math inline">\(D = 0.75\)</span>, and later tune this parameter through a test corpus.</p>
+<p>To train a language model with the <span class="math inline">\(k\)</span>-gram counts stored in <code>freqs</code>, use:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>kn &lt;-<span class="st"> </span><span class="kw">language_model</span>(freqs, <span class="st">&quot;kn&quot;</span>, <span class="dt">D =</span> <span class="fl">0.75</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a>kn</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="co">#&gt; A k-gram language model.</span></span></code></pre></div>
+<p>This will create a <code>language_model</code> object, which can be used to obtain word continuation and sentence probabilities. Let us first get a summary of our final model:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">summary</span>(kn)</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co">#&gt; A k-gram language model.</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="co">#&gt; </span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="co">#&gt; Smoother:</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="co">#&gt; * &#39;kn&#39;.</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="co">#&gt; </span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="co">#&gt; Parameters:</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="co">#&gt; * N: 5</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="co">#&gt; * V: 3046</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="co">#&gt; * D: 0.75</span></span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="co">#&gt; </span></span>
+<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt; Number of words in training corpus:</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="co">#&gt; * W: 26174</span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="co">#&gt; </span></span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="co">#&gt; Number of distinct k-grams with positive counts:</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a><span class="co">#&gt; * 1-grams:3048</span></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="co">#&gt; * 2-grams:14389</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="co">#&gt; * 3-grams:21208</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a><span class="co">#&gt; * 4-grams:22706</span></span>
+<span id="cb10-20"><a href="#cb10-20"></a><span class="co">#&gt; * 5-grams:22975</span></span></code></pre></div>
+<p>The parameter <code>D</code> can be accessed and modified through the functions <code>parameters()</code> and <code>param()</code>, which have a similar interface to the base R function <code>attributes()</code> and <code>attr()</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">parameters</span>(kn)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&gt; $N</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="co">#&gt; [1] 5</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; </span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co">#&gt; $V</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">#&gt; [1] 3046</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; </span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co">#&gt; $D</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a><span class="co">#&gt; [1] 0.75</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="kw">param</span>(kn, <span class="st">&quot;D&quot;</span>)</span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="co">#&gt; [1] 0.75</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a><span class="kw">param</span>(kn, <span class="st">&quot;D&quot;</span>) &lt;-<span class="st"> </span><span class="fl">0.6</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="kw">param</span>(kn, <span class="st">&quot;D&quot;</span>)</span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="co">#&gt; [1] 0.6</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="kw">param</span>(kn, <span class="st">&quot;D&quot;</span>) &lt;-<span class="st"> </span><span class="fl">0.75</span></span></code></pre></div>
+<p>We can also modify the order of the <span class="math inline">\(k\)</span>-gram model, by choosing any number less than or equal to <span class="math inline">\(N = 5\)</span> (since we stored up to <span class="math inline">\(5\)</span>-gram counts):</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">param</span>(kn, <span class="st">&quot;N&quot;</span>) &lt;-<span class="st"> </span><span class="dv">4</span> <span class="co"># &#39;kn&#39; uses only 1:4-grams</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="kw">param</span>(kn, <span class="st">&quot;N&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="co">#&gt; [1] 4</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="kw">param</span>(kn, <span class="st">&quot;N&quot;</span>) &lt;-<span class="st"> </span><span class="dv">5</span> <span class="co"># &#39;kn&#39; uses also 5-grams</span></span></code></pre></div>
+<p>In the next section we show how to use this language model for basic tasks such as predicting word and sentence probabilities, and for more complex tasks such as computing perplexities and generating random text.</p>
+</div>
+</div>
+<div id="using-language_model-objects" class="section level2">
+<h2>Using <code>language_model</code> objects</h2>
+<p>So far we have created a <code>language_model</code> object using Interpolated Kneser-Ney as smoothing method. In this section we show how to:</p>
+<ul>
+<li>Obtain word continuation and sentence probabilities.</li>
+<li>Generate random text by sampling from the language model probability distribution.</li>
+<li>Compute the language model’s perplexity on a test corpus.</li>
+</ul>
+<div id="probability" class="section level3">
+<h3>Word continuation and sentence probabilities</h3>
+<p>We can obtain both sentence probabilities and word continuation probabilities through the function <code>probability()</code>. This is generic on the first argument, which can be a <code>character</code> for sentence probabilities, or a <code>word_context</code> expression for continuation probabilities.</p>
+<p>Sentence probabilities can be obtained as follows (the first two are sentences from the training corpus):</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">probability</span>(<span class="kw">c</span>(<span class="st">&quot;Did he break out into tears?&quot;</span>,</span>
+<span id="cb13-2"><a href="#cb13-2"></a>              <span class="st">&quot;I see, lady, the gentleman is not in your books.&quot;</span>,</span>
+<span id="cb13-3"><a href="#cb13-3"></a>              <span class="st">&quot;We are predicting sentence probabilities.&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>              ),</span>
+<span id="cb13-5"><a href="#cb13-5"></a>            <span class="dt">model =</span> kn</span>
+<span id="cb13-6"><a href="#cb13-6"></a>            )</span>
+<span id="cb13-7"><a href="#cb13-7"></a><span class="co">#&gt; [1] 2.720954e-05 8.628460e-07 9.230391e-19</span></span></code></pre></div>
+<p>Behind the scenes, the same <code>.preprocess()</code> and <code>.tknz_sent()</code> functions used during training are being applied to the input. We can turn off this behaviour by explicitly specifying the <code>.preprocess</code> and <code>.tknz_sent</code> arguments of <code>probability()</code>.</p>
+<p>Word continuation probabilities are the conditional probabilities of words following some given context. For instance, the probability that the words <code>&quot;tears&quot;</code> or <code>&quot;pieces&quot;</code> will follow the context <code>&quot;Did he break out into&quot;</code> are computed as follows:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">probability</span>(<span class="st">&quot;tears&quot;</span> <span class="op">%|%</span><span class="st"> &quot;Did he break out into&quot;</span>, <span class="dt">model =</span> kn)</span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="co">#&gt; [1] 0.5813743</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="kw">probability</span>(<span class="st">&quot;pieces&quot;</span> <span class="op">%|%</span><span class="st"> &quot;Did he break out into&quot;</span>, <span class="dt">model =</span> kn)</span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="co">#&gt; [1] 9.992621e-06</span></span></code></pre></div>
+<p>The operator <code>%|%</code> takes as input a character vector on its left-hand side, i.e. the list of candidate words, and a length one character vector on its right-hand side, i.e. the given context. If the context has more than <span class="math inline">\(N - 1\)</span> words (where <span class="math inline">\(N\)</span> is the order of the language model, five in our case), only the last <span class="math inline">\(N - 1\)</span> words are used for prediction.</p>
+</div>
+<div id="sampling" class="section level3">
+<h3>Generating random text</h3>
+<p>We can sample sentences from the probability distribution defined by our language model using <code>sample_sentences()</code>. For instance:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">set.seed</span>(<span class="dv">840</span>)</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="kw">sample_sentences</span>(<span class="dt">model =</span> kn, </span>
+<span id="cb15-3"><a href="#cb15-3"></a>                 <span class="dt">n =</span> <span class="dv">10</span>,</span>
+<span id="cb15-4"><a href="#cb15-4"></a>                 <span class="dt">max_length =</span> <span class="dv">10</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a>                 )</span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="co">#&gt;  [1] &quot;i have studied officers ; &lt;EOS&gt;&quot;                                              </span></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="co">#&gt;  [2] &quot;truly by in your company thing that you ask for [...] (truncated output)&quot;     </span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="co">#&gt;  [3] &quot;i protest i love the gentleman is wise ; &lt;EOS&gt;&quot;                               </span></span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="co">#&gt;  [4] &quot;for it . &lt;EOS&gt;&quot;                                                               </span></span>
+<span id="cb15-10"><a href="#cb15-10"></a><span class="co">#&gt;  [5] &quot;the best befits can i for your own hobbyhorses hence [...] (truncated output)&quot;</span></span>
+<span id="cb15-11"><a href="#cb15-11"></a><span class="co">#&gt;  [6] &quot;but by this travail fit the length july cham&#39;s beard [...] (truncated output)&quot;</span></span>
+<span id="cb15-12"><a href="#cb15-12"></a><span class="co">#&gt;  [7] &quot;don pedro she doth well as being some attires and [...] (truncated output)&quot;   </span></span>
+<span id="cb15-13"><a href="#cb15-13"></a><span class="co">#&gt;  [8] &quot;exeunt all ladies only spots of grey all the wealth [...] (truncated output)&quot; </span></span>
+<span id="cb15-14"><a href="#cb15-14"></a><span class="co">#&gt;  [9] &quot;heighho ! &lt;EOS&gt;&quot;                                                              </span></span>
+<span id="cb15-15"><a href="#cb15-15"></a><span class="co">#&gt; [10] &quot;exit margaret ursula friar . &lt;EOS&gt;&quot;</span></span></code></pre></div>
+<p>The sampling is performed word by word, and the output is truncated if no <code>EOS</code> token is found after sampling <code>max_length</code> words.</p>
+<p>We can also sample with a temperature different from one. The temperature transformation of a probability distribution <span class="math inline">\(p(i)\)</span> is defined by:</p>
+<p><span class="math display">\[p_t(i) = \dfrac{\exp(\log{p(i)} / t)} {Z(t)},\]</span> where <span class="math inline">\(Z(t)\)</span> is the partition function, defined in such a way that <span class="math inline">\(\sum _i p_t(i) \equiv 1\)</span>. Intuitively, higher and lower temperatures make the original probability distribution smoother and rougher, respectively. By making a physical analogy, we can think of less probable words as states with higher energies, and the effect of higher (lower) temperatures is to make more (less) likely to excite these high energy states.</p>
+<p>We can test the effects of temperature on our Shakespeare-inspired language model, by changing the parameter <code>t</code> of <code>sample_sentences()</code> (notice that the default <code>t = 1</code> corresponds to the original distribution):</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">sample_sentences</span>(<span class="dt">model =</span> kn, </span>
+<span id="cb16-2"><a href="#cb16-2"></a>                 <span class="dt">n =</span> <span class="dv">10</span>,</span>
+<span id="cb16-3"><a href="#cb16-3"></a>                 <span class="dt">max_length =</span> <span class="dv">10</span>, </span>
+<span id="cb16-4"><a href="#cb16-4"></a>                 <span class="dt">t =</span> <span class="fl">0.1</span> <span class="co"># low temperature</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a>                 )</span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="co">#&gt;  [1] &quot;i will not have to do with you . &lt;EOS&gt;&quot;                                    </span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="co">#&gt;  [2] &quot;i will go before and show him their examination . [...] (truncated output)&quot;</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a><span class="co">#&gt;  [3] &quot;i will not be sworn but love may transform me [...] (truncated output)&quot;    </span></span>
+<span id="cb16-9"><a href="#cb16-9"></a><span class="co">#&gt;  [4] &quot;i will not have to do with you . &lt;EOS&gt;&quot;                                    </span></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="co">#&gt;  [5] &quot;i will not be sworn but love may transform me [...] (truncated output)&quot;    </span></span>
+<span id="cb16-11"><a href="#cb16-11"></a><span class="co">#&gt;  [6] &quot;i will not think it . &lt;EOS&gt;&quot;                                               </span></span>
+<span id="cb16-12"><a href="#cb16-12"></a><span class="co">#&gt;  [7] &quot;i will not be sworn but love may transform me [...] (truncated output)&quot;    </span></span>
+<span id="cb16-13"><a href="#cb16-13"></a><span class="co">#&gt;  [8] &quot;i will not be sworn but love may transform me [...] (truncated output)&quot;    </span></span>
+<span id="cb16-14"><a href="#cb16-14"></a><span class="co">#&gt;  [9] &quot;i will not be sworn but love may transform me [...] (truncated output)&quot;    </span></span>
+<span id="cb16-15"><a href="#cb16-15"></a><span class="co">#&gt; [10] &quot;i will not have to do with you . &lt;EOS&gt;&quot;</span></span>
+<span id="cb16-16"><a href="#cb16-16"></a><span class="kw">sample_sentences</span>(<span class="dt">model =</span> kn, </span>
+<span id="cb16-17"><a href="#cb16-17"></a>                 <span class="dt">n =</span> <span class="dv">10</span>,</span>
+<span id="cb16-18"><a href="#cb16-18"></a>                 <span class="dt">max_length =</span> <span class="dv">10</span>, </span>
+<span id="cb16-19"><a href="#cb16-19"></a>                 <span class="dt">t =</span> <span class="dv">10</span> <span class="co"># high temperature</span></span>
+<span id="cb16-20"><a href="#cb16-20"></a>                 )</span>
+<span id="cb16-21"><a href="#cb16-21"></a><span class="co">#&gt;  [1] &quot;pleasantspirited minds wants valuing peace speech libertines after offered being [...] (truncated output)&quot;     </span></span>
+<span id="cb16-22"><a href="#cb16-22"></a><span class="co">#&gt;  [2] &quot;braggarts smell fiveandthirty from possible knowest sickness tonight panders agony [...] (truncated output)&quot;   </span></span>
+<span id="cb16-23"><a href="#cb16-23"></a><span class="co">#&gt;  [3] &quot;show&#39;d where&#39;s give intelligence princes finer tire scab brought rearward [...] (truncated output)&quot;            </span></span>
+<span id="cb16-24"><a href="#cb16-24"></a><span class="co">#&gt;  [4] &quot;deserved heart&#39;s evening virtues holds c hadst persuasion can finer [...] (truncated output)&quot;                  </span></span>
+<span id="cb16-25"><a href="#cb16-25"></a><span class="co">#&gt;  [5] &quot;churchbench modesty thinks noncome remorse epitaphs consented mortifying whom hath [...] (truncated output)&quot;   </span></span>
+<span id="cb16-26"><a href="#cb16-26"></a><span class="co">#&gt;  [6] &quot;expectation impossible yielded deceive wedding mouth unclasp absentand qualify twelve [...] (truncated output)&quot;</span></span>
+<span id="cb16-27"><a href="#cb16-27"></a><span class="co">#&gt;  [7] &quot;giddily certainly nightraven prized grief laugh claw invincible tyrant blessed [...] (truncated output)&quot;       </span></span>
+<span id="cb16-28"><a href="#cb16-28"></a><span class="co">#&gt;  [8] &quot;&#39;i senseless beat time denies &#39;hundred ten forth hire&#39; reenter [...] (truncated output)&quot;                       </span></span>
+<span id="cb16-29"><a href="#cb16-29"></a><span class="co">#&gt;  [9] &quot;toothache laughed civil kill&#39;d mean hero&#39;s yea foundation deformed appetite [...] (truncated output)&quot;          </span></span>
+<span id="cb16-30"><a href="#cb16-30"></a><span class="co">#&gt; [10] &quot;hour studied figure nine leonato enough ever herself confess authority [...] (truncated output)&quot;</span></span></code></pre></div>
+<p>As explained above, sampling with low temperature gives much more weight to probable sentences, and indeed the output is very repetitive. On the contrary, high temperature makes sentence probabilities more uniform, and in fact our output above looks quite random.</p>
+</div>
+<div id="perplexity" class="section level3">
+<h3>Compute language model’s perplexities</h3>
+<p><a href="https://en.wikipedia.org/wiki/Perplexity">Perplexity</a> is a standard evaluation metric for the overall performance of a language model. It is given by <span class="math inline">\(P = e^H\)</span>, where <span class="math inline">\(H\)</span> is the cross-entropy of the language model sentence probability distribution against a test corpus empirical distribution:</p>
+<p><span class="math display">\[
+H = - \dfrac{1}{W}\sum _s\ \ln (\text {Prob}(s)) 
+\]</span> Here <span class="math inline">\(W\)</span> is total number of words in the test corpus (following Ref. <span class="citation">(Chen and Goodman 1999)</span>, we include counts of the EOS token, but not the BOS token, in <span class="math inline">\(W\)</span>), and the sum extends over all sentences in the test corpus. Perplexity does not give direct information on the performance of a language model in a specific end-to-end task, but is often found to correlate with the latter, which provides a practical justification for the use of this metric. Notice that better models are associated with lower perplexities, and that <span class="math inline">\(H\)</span> is proportional to the negative log-likelihood of the corpus under the language model assumption.</p>
+<p>Perplexities can be computed in <code>kgrams</code> using the function <code>perplexity()</code>, which can read text both from a <code>character</code> vector and from a <code>connection</code>. We will take our test corpus again from Shakespeare’s opus, specifically the play “A Midsummer Night’s Dream”, which is example data from <code>kgrams</code> namespace:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>midsummer[<span class="dv">840</span>]</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="co">#&gt; [1] &quot; when truth kills truth o devilishholy fray !&quot;</span></span></code></pre></div>
+<p>We can compute the perplexity of our Kneser-Ney <span class="math inline">\(5\)</span>-gram model <code>kn</code> against this corpus as follows:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">perplexity</span>(midsummer, <span class="dt">model =</span> kn)</span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="co">#&gt; [1] 376.8554</span></span></code></pre></div>
+<p>We can use perplexity to tune our model parameter <span class="math inline">\(D\)</span>. We compute perplexity over a grid of values for <code>D</code> and plot the results. We do this for the <span class="math inline">\(k\)</span>-gram models with <span class="math inline">\(k \in \{2, 3, 4, 5\}\)</span>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>D_grid &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dt">from =</span> <span class="fl">0.5</span>, <span class="dt">to =</span> <span class="fl">1.0</span>, <span class="dt">by =</span> <span class="fl">0.01</span>)</span>
+<span id="cb19-2"><a href="#cb19-2"></a>FUN &lt;-<span class="st"> </span><span class="cf">function</span>(D, N) {</span>
+<span id="cb19-3"><a href="#cb19-3"></a>        <span class="kw">param</span>(kn, <span class="st">&quot;N&quot;</span>) &lt;-<span class="st"> </span>N</span>
+<span id="cb19-4"><a href="#cb19-4"></a>        <span class="kw">param</span>(kn, <span class="st">&quot;D&quot;</span>) &lt;-<span class="st"> </span>D</span>
+<span id="cb19-5"><a href="#cb19-5"></a>        <span class="kw">perplexity</span>(midsummer, <span class="dt">model =</span> kn)</span>
+<span id="cb19-6"><a href="#cb19-6"></a>}</span>
+<span id="cb19-7"><a href="#cb19-7"></a>P_grid &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>, <span class="cf">function</span>(N) <span class="kw">sapply</span>(D_grid, FUN, <span class="dt">N =</span> N))</span>
+<span id="cb19-8"><a href="#cb19-8"></a>oldpar &lt;-<span class="st"> </span><span class="kw">par</span>(<span class="dt">mar =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb19-9"><a href="#cb19-9"></a><span class="kw">plot</span>(D_grid, P_grid[[<span class="dv">1</span>]], <span class="dt">type =</span> <span class="st">&quot;n&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;D&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Perplexity&quot;</span>, <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">300</span>, <span class="dv">500</span>))</span>
+<span id="cb19-10"><a href="#cb19-10"></a><span class="kw">lines</span>(D_grid, P_grid[[<span class="dv">1</span>]], <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb19-11"><a href="#cb19-11"></a><span class="kw">lines</span>(D_grid, P_grid[[<span class="dv">2</span>]], <span class="dt">col =</span> <span class="st">&quot;chartreuse&quot;</span>)</span>
+<span id="cb19-12"><a href="#cb19-12"></a><span class="kw">lines</span>(D_grid, P_grid[[<span class="dv">3</span>]], <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)</span>
+<span id="cb19-13"><a href="#cb19-13"></a><span class="kw">lines</span>(D_grid, P_grid[[<span class="dv">4</span>]], <span class="dt">col =</span> <span class="st">&quot;black&quot;</span>)</span></code></pre></div>
+<div class="figure">
+<img src="data:image/png;base64,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" alt="Perplexity as a function of the discount parameter of Interpolated Kneser-Ney 2-gram (red), 3-gram (green), 4-gram (blue) and 5-gram (black) models." width="50%" />
+<p class="caption">
+Perplexity as a function of the discount parameter of Interpolated Kneser-Ney 2-gram (red), 3-gram (green), 4-gram (blue) and 5-gram (black) models.
+</p>
+</div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">par</span>(oldpar)</span></code></pre></div>
+<p>We see that the optimal choices for <code>D</code> are close to its maximum allowed value <code>D = 1</code>, for which the performance of the 2-gram model is slightly worse than the higher order models, and that the 5-gram model performs generally worse than the 3-gram and 4-gram models. Indeed, the optimized perplexities for the various <span class="math inline">\(k\)</span>-gram orders are given by:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">sapply</span>(<span class="kw">c</span>(<span class="st">&quot;2-gram&quot;</span> =<span class="st"> </span><span class="dv">1</span>, <span class="st">&quot;3-gram&quot;</span> =<span class="st"> </span><span class="dv">2</span>, <span class="st">&quot;4-gram&quot;</span> =<span class="st"> </span><span class="dv">3</span>, <span class="st">&quot;5-gram&quot;</span> =<span class="st"> </span><span class="dv">4</span>),</span>
+<span id="cb21-2"><a href="#cb21-2"></a>       <span class="cf">function</span>(N) <span class="kw">min</span>(P_grid[[N]])</span>
+<span id="cb21-3"><a href="#cb21-3"></a>       )</span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="co">#&gt;   2-gram   3-gram   4-gram   5-gram </span></span>
+<span id="cb21-5"><a href="#cb21-5"></a><span class="co">#&gt; 324.8595 320.5757 319.9021 319.9982</span></span></code></pre></div>
+<p>which shows that the best performing model is the 4-gram one, while it seems that the 5-gram model is starting to overfit (which is not very surprising, given the ridiculously small size of our training corpus!).</p>
+</div>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<p>In this vignette I have shown how to implement and explore <span class="math inline">\(k\)</span>-gram language models in R using <code>kgrams</code>. For further help, you can consult the reference page of the <code>kgrams</code> <a href="https://vgherard.github.io/kgrams/">website</a>. Development of <code>kgrams</code> takes place on its <a href="https://github.com/vgherard/kgrams/">GitHub repository</a>. If you find a bug, please let me know by opening an issue on GitHub, and if you have any ideas or proposals for improvement, please feel welcome to send a pull request, or simply an e-mail at <a href="mailto:vgherard@sissa.it" class="email">vgherard@sissa.it</a>.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references">
+<div id="ref-chen1999empirical">
+<p>Chen, Stanley F, and Joshua Goodman. 1999. “An Empirical Study of Smoothing Techniques for Language Modeling.” <em>Computer Speech &amp; Language</em> 13 (4): 359–94.</p>
+</div>
+<div id="ref-Kneser1995ImprovedBF">
+<p>Kneser, Reinhard, and H. Ney. 1995. “Improved Backing-Off for M-Gram Language Modeling.” <em>1995 International Conference on Acoustics, Speech, and Signal Processing</em> 1: 181–84 vol.1.</p>
+</div>
+<div id="ref-Pibiri_2019">
+<p>Pibiri, Giulio Ermanno, and Rossano Venturini. 2019. “Handling Massive N -Gram Datasets Efficiently.” <em>ACM Transactions on Information Systems</em> 37 (2): 1–41. <a href="https://doi.org/10.1145/3302913">https://doi.org/10.1145/3302913</a>.</p>
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Here and below, when we talk about “language models”, we always refer to <em>word-level</em> language models. In particular, a <span class="math inline">\(k\)</span>-gram is a <span class="math inline">\(k\)</span>-tuple of words.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://en.wikipedia.org/wiki/Perplexity">Perplexity</a> is a standard evaluation metric for language models, based on the model’s sentence probability distribution cross-entropy with the empirical distribution of a test corpus. It is described in some more detail in this <a href="#perplexity">Subsection</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Strictly speaking, a single argument <code>.preprocess</code> would suffice, as the processed input is (symbolically) <code>.tknz_sent(.preprocess(input))</code>. Having two separate arguments for preprocessing and sentence tokenization has a couple of advantages, as explained in <code>?kgram_freqs</code>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>The string concatenation operator <code>%+%</code> is equivalent to <code>paste(lhs, rhs)</code>. Also, the helpers <code>BOS()</code>, <code>EOS()</code> and <code>UNK()</code> return the BOS, EOS and UNK tokens, respectively.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
