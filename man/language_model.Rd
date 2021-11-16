@@ -19,13 +19,13 @@ k-gram model. At present, necessarily a \code{kgram_freqs} object, or a
 
 \item{...}{possible additional parameters required by the smoother.}
 
-\item{smoother}{a character vector. Indicates the smoothing technique to
-be applied to compute k-gram continuation probabilities. A list of
-available smoothers can be obtained with \code{smoothers()}, and
+\item{smoother}{a length one character vector. Indicates the smoothing
+technique to be applied to compute k-gram continuation probabilities. A list
+of available smoothers can be obtained with \code{smoothers()}, and
 further information on a particular smoother through
 \code{info()}.}
 
-\item{N}{an integer. Maximum order of k-grams to use in the language
+\item{N}{a length one integer. Maximum order of k-grams to use in the language
 model. This muss be less than or equal to the order of the underlying
 \code{kgram_freqs} object.}
 }
@@ -48,7 +48,7 @@ corpus. See \link[kgrams]{perplexity}.
 }
 \details{
 These generics are used to construct objects of class \code{language_model}.
-The \code{language_model} method isonly needed to create copies of
+The \code{language_model} method is only needed to create copies of
 \code{language_model} objects (that is to say, new copies which are not
 altered by methods which modify the original object in place,
 see e.g. \link[kgrams]{parameters}). The discussion below focuses on

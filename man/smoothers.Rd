@@ -15,8 +15,8 @@ info(smoother)
 \value{
 \code{smoothers()} returns a character vector, the list of code names
 of probability smoothers available in \link[kgrams]{kgrams}.
-\code{info(smoother)} returns \code{NULL} and prints some information on
-the selected smoothing technique.
+\code{info(smoother)} returns \code{NULL} (invisibly) and prints some
+information on the selected smoothing technique.
 }
 \description{
 Information on available k-gram continuation probability smoothers.
@@ -42,6 +42,7 @@ smoothers()
 
 # Get information on smoother "kn", i.e. Interpolated Kneser-Ney
 info("kn")
+
 
 }
 \references{

@@ -5,9 +5,7 @@
 #' @author Valerio Gherardi
 #' @md
 #'
-#' @param model either an object of class \code{language_model}, or a 
-#' \code{kgram_freqs} object. The language model from which probabilities 
-#' are computed.
+#' @param model an object of class \code{language_model}.
 #' @param n an integer. Number of sentences to sample.
 #' @param max_length an integer. Maximum length of sampled sentences. 
 #' @param t a positive number. Sampling temperature (optional); see Details.
@@ -58,7 +56,8 @@
 #' @export
 sample_sentences <- function(model, n, max_length, t = 1.0) 
 {
-        model <- as_language_model(model)
-        cpp_obj <- attr(model, "cpp_obj")
-        cpp_obj$sample(n, max_length, t)
+        assert_language_model(model)
+        assert_positive_integer(n)
+        assert_positive_number(t)
+        attr(model, "cpp_obj")$sample(n, max_length, t)
 }

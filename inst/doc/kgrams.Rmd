@@ -30,6 +30,14 @@ and $k$-grams and count estimates are stored in plain C++ STL hash-tables, which
 
 On the other hand, most focus is put on providing a *fast*, time efficient implementation, with intuitive interfaces for text processing and for model evaluation, and a reasonably large choice of pre-implemented smoothing algorithms, making `kgrams` suitable for small- and medium-scale language model experiments, for rapidly building baseline models, and for pedagogical purposes.
 
+In my point of view, the interest in $k$-gram language models is mainly 
+pedagogical, as they provide very simple algorithms (together with all their 
+limitations) for learning a natural language's sentence probability 
+distribution. Nonetheless, and for the same reasons, $k$-gram models can also 
+provide a useful, quick baseline for model building with more complex 
+algorithms. An R implementation of classical $k$-gram smoothing techniques is 
+lacking at the time of writing, and the goal of `kgrams` is to fill this gap.
+
 In the following Sections, I illustrate the prototypical workflow for [building a $k$-gram language model](#kgram_model) with `kgrams`, show how to compute [probabilities](#probability) and [perplexities](#perplexity), and (for the sake of fun!) [generate random text](#sampling) at different temperatures.
 
 [^word_level]: Here and below, when we talk about "language models", we always refer to *word-level* language models. In particular, a $k$-gram is a $k$-tuple of words.
@@ -291,7 +299,7 @@ perplexity(midsummer, model = kn)
 We can use perplexity to tune our model parameter $D$. We compute perplexity over a grid of values for `D` and plot the results. We do this for the $k$-gram models with $k \in \{2, 3, 4, 5\}$:
 
 ```{r, out.width="50%", fig.cap="Perplexity as a function of the discount parameter of Interpolated Kneser-Ney 2-gram (red), 3-gram (green), 4-gram (blue) and 5-gram (black) models."}
-D_grid <- seq(from = 0.5, to = 1.0, by = 0.01)
+D_grid <- seq(from = 0.5, to = 0.99, by = 0.01)
 FUN <- function(D, N) {
         param(kn, "N") <- N
         param(kn, "D") <- D
