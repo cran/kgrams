@@ -1,3 +1,18 @@
+# kgrams 0.1.5
+
+* Removed "Tools for..." at the beginning of package DESCRIPTION, as per CRAN's 
+request.
+* Simplified examples in `?kgram_freqs`.
+
+# kgrams 0.1.4
+
+* Updated `R` requirements `3.5 -> 4.0`.
+* Removed `SystemRequirements: C++11` (see [this tidyverse blog post](https://www.tidyverse.org/blog/2023/03/cran-checks-compiled-code/#note-regarding-systemrequirements-c11))
+
+# kgrams 0.1.3
+
+* Remove dependency from external online sources in vignette.
+
 # kgrams 0.1.2
 
 ### Overall Software Improvements

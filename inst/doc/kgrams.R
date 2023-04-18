@@ -8,10 +8,6 @@ knitr::opts_chunk$set(
 library(kgrams)
 
 ## -----------------------------------------------------------------------------
-# Create an URL connection to Shakespeare's "Much Ado About Nothing" 
-txt_con <- url("http://shakespeare.mit.edu/much_ado/full.html")
-
-## -----------------------------------------------------------------------------
 .preprocess <- function(x) {
         # Remove speaker name and locations (boldfaced in original html)
         x <- gsub("<b>[A-z]+</b>", "", x)
@@ -33,13 +29,11 @@ txt_con <- url("http://shakespeare.mit.edu/much_ado/full.html")
 }
 
 ## -----------------------------------------------------------------------------
-freqs <- kgram_freqs(txt_con, # Read Shakespeare's text from connection
+freqs <- kgram_freqs(much_ado, # Read Shakespeare's text from connection
                      N = 5, # Store k-gram counts for k <= 5
                      .preprocess = .preprocess,  # preprocess text
                      .tknz_sent = .tknz_sent, # tokenize sentences
-                     verbose = FALSE, # If TRUE, prints current progress info 
-                     max_lines = Inf, # Read until the end-of-file
-                     batch_size = 100 # Read text in batches of 100 lines
+                     verbose = FALSE
                      )
 freqs
 
