@@ -1,6 +1,6 @@
 Package: kgrams
 Title: Classical k-gram Language Models
-Version: 0.1.5
+Version: 0.2.0
 Authors@R: 
     person(given = "Valerio",
            family = "Gherardi",
@@ -26,8 +26,8 @@ URL: https://vgherard.github.io/kgrams/,
         https://github.com/vgherard/kgrams
 BugReports: https://github.com/vgherard/kgrams/issues
 NeedsCompilation: yes
-Packaged: 2023-04-17 08:36:26 UTC; valerio
+Packaged: 2023-10-06 10:39:20 UTC; Valerio
 Author: Valerio Gherardi [aut, cre] (<https://orcid.org/0000-0002-8215-3013>)
 Maintainer: Valerio Gherardi <vgherard840@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-04-18 14:20:02 UTC
+Date/Publication: 2023-10-06 14:30:06 UTC
