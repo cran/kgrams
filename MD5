@@ -1,6 +1,6 @@
-415c122d01f5f28f08c89090794d1293 *DESCRIPTION
+462c14cfefc8343c4eaee71fecf866c2 *DESCRIPTION
 6fac16a15812a411f68a23de7a355234 *NAMESPACE
-d8788749e876e01c1a51a43b0d6e3a7a *NEWS.md
+ef57f4d4f7991ebfd5135844c2fd60d1 *NEWS.md
 d377d36deb919b3464a89690b19276fb *R/RcppExports.R
 6bf3fd2912b22aa9a2be4bacb94e0b6b *R/RcppModules.R
 18008dec6e10b2ccc0485749e1795e7c *R/as_kgram_freqs.R
@@ -24,14 +24,14 @@ a7bce052b023e667d6176f3a0cd1bd40 *R/string_concatenation.R
 20b1c218f739e44876d63143a3745970 *R/validate_smoother.R
 ae0c4436461b2f9d2b3030740606a57f *R/word_context.R
 7fd8b2e2e8f6e9e4b4bf1367f464565a *README.md
-11fd9627c4c0ef65f547f8ff25d23e92 *build/partial.rdb
-ce4724ea3033c520a3e07e378d40725c *build/vignette.rds
+943b9eb6a9002d342cff409e9aa372a0 *build/partial.rdb
+267071e411fbe153cbd5fc213ac7a872 *build/vignette.rds
 bcb46217b37f37e9ff845a1f40b65bf0 *data/midsummer.rda
 82cb532bde717a1c2fe69616b8192a93 *data/much_ado.rda
 3d5bf9fd128cd434373f838d121b1570 *inst/REFERENCES.bib
-22a586784c2520411648c38e5e64579f *inst/doc/kgrams.R
+1df63b3b0f0d3aec14bbee541fd30961 *inst/doc/kgrams.R
 d089f2324a89e5ff7213a2bc0c5e942b *inst/doc/kgrams.Rmd
-98be122edac5ac6316e9094e20577c45 *inst/doc/kgrams.html
+6d3daa67786c070f6c2a5eda4c6a77d1 *inst/doc/kgrams.html
 29eb14fe333a173b93bf7d1c75b7f581 *inst/include/kgrams.h
 f864bb4ba70c0b32abe8b8e540bb52ba *man/dictionary.Rd
 e344153218e5fbace2221bc096143b0e *man/grapes-plus-grapes.Rd

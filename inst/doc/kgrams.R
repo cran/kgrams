@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -112,7 +112,7 @@ midsummer[840]
 ## -----------------------------------------------------------------------------
 perplexity(midsummer, model = kn)
 
-## ---- out.width="50%", fig.cap="Perplexity as a function of the discount parameter of Interpolated Kneser-Ney 2-gram (red), 3-gram (green), 4-gram (blue) and 5-gram (black) models."----
+## ----out.width="50%", fig.cap="Perplexity as a function of the discount parameter of Interpolated Kneser-Ney 2-gram (red), 3-gram (green), 4-gram (blue) and 5-gram (black) models."----
 D_grid <- seq(from = 0.5, to = 0.99, by = 0.01)
 FUN <- function(D, N) {
         param(kn, "N") <- N
